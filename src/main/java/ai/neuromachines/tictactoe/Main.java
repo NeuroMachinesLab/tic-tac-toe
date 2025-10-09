@@ -21,10 +21,10 @@ void main() throws IOException {
     // Build Network
     Network network = Files.exists(path) ?
             openNetworkFromFile(path) :
-            createNetwork(9, 5, 1);
+            createNetwork(9, 1);
 
     // Train
-    trainNetwork(network, qTable, 1000);
+    trainNetwork(network, qTable, 100);
 
     saveToFile(network, path);
 }
@@ -32,10 +32,9 @@ void main() throws IOException {
 Network createNetwork(int... layersNodeCount) {
     println("Create network with random weights and " +
             layersNodeCount[0] + " nodes in input layer, " +
-            layersNodeCount[1] + " nodes in hidden layer, " +
-            layersNodeCount[2] + " nodes in output layer");
+            layersNodeCount[1] + " nodes in output layer");
     ActivationFunc actFunc = ActivationFunc.tanh();
-    return Network.of(List.of(actFunc, actFunc), layersNodeCount);
+    return Network.of(List.of(actFunc), layersNodeCount);
 }
 
 @SuppressWarnings("SameParameterValue")
@@ -80,6 +79,7 @@ private void trainNetwork(Network network, QTable qtable, int iterations) {
         printResult(state, move, predictedMove);
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
+    println("Trained for " + qtable.getMoves().size() + " states");
     println("Train time: " + timeSpent);
 }
 
