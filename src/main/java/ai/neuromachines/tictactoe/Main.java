@@ -24,7 +24,7 @@ void main() throws IOException {
             createNetwork(9, 5, 1);
 
     // Train
-    trainNetwork(network, qTable, 100);
+    trainNetwork(network, qTable, 1000);
 
     saveToFile(network, path);
 }
@@ -34,7 +34,7 @@ Network createNetwork(int... layersNodeCount) {
             layersNodeCount[0] + " nodes in input layer, " +
             layersNodeCount[1] + " nodes in hidden layer, " +
             layersNodeCount[2] + " nodes in output layer");
-    ActivationFunc actFunc = ActivationFunc.leakyReLu(0.01f);
+    ActivationFunc actFunc = ActivationFunc.tanh();
     return Network.of(List.of(actFunc, actFunc), layersNodeCount);
 }
 
@@ -54,9 +54,15 @@ void saveToFile(Network network, Path path) throws IOException {
     println("Network has been written to: " + path);
 }
 
-
+/**
+ * Network output contains only one value and belongs to 0..1 interval.
+ * Network trained better for 0..1 output interval.<p>
+ * Multiply output to 10 to convert it to Tic Tac Board Cell Index.
+ * This index belongs to 0..8 interval (0 for upper left, 8 for lower right cell).
+ */
 @SuppressWarnings("SameParameterValue")
 private void trainNetwork(Network network, QTable qtable, int iterations) {
+    float Multiplicator = 10;
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
@@ -65,10 +71,13 @@ private void trainNetwork(Network network, QTable qtable, int iterations) {
         Integer move = e.getValue();
         float[] input = state.getNetworkInput();
         float[] expectedOutput = new float[1];
-        expectedOutput[0] = move;
+        expectedOutput[0] = move / Multiplicator;
 
         trainNetwork(input, expectedOutput, trainStrategy, iterations);
-        printResult(state, move, network);
+
+        float networkOutput = network.output()[0];
+        float predictedMove = networkOutput * Multiplicator;
+        printResult(state, move, predictedMove);
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
     println("Train time: " + timeSpent);
@@ -81,7 +90,12 @@ void trainNetwork(float[] input, float[] expectedOutput, TrainStrategy trainStra
     }
 }
 
-void printResult(BoardState state, int expect, Network network) {
-    float answer = network.output()[0];
-    println(state + ": expected = " + expect + ",\tnetwork answer = " + answer + ",\terror = " + (expect - answer));
+void printResult(BoardState state, int expect, float answer) {
+    float error = expect - answer;
+    System.out.printf("%s: expected = %d,\tnetwork answer = %+.2f,\terror = %+.0e", state, expect, answer, error);
+    if (error > 0.01f) {
+        println("\t[WARNING]");
+    } else {
+        println();
+    }
 }
