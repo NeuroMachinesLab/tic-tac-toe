@@ -44,7 +44,8 @@ public record BoardState(State[] state) {
                 case O -> sb.append('o');
                 case X -> sb.append('x');
             }
-            if (++i % 3 == 0) {
+            i++;
+            if (i == 3 || i == 6) {
                 sb.append(' ');
             }
         }

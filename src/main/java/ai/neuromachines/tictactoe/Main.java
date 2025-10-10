@@ -92,7 +92,7 @@ void trainNetwork(float[] input, float[] expectedOutput, TrainStrategy trainStra
 
 void printResult(BoardState state, int expect, float answer) {
     float error = expect - answer;
-    System.out.printf("%s: expected = %d,\tnetwork answer = %+.2f,\terror = %+.0e", state, expect, answer, error);
+    System.out.printf("%s : expected = %d,\tnetwork answer = %+.2f,\terror = %+.0e", state, expect, answer, error);
     if (error > 0.01f) {
         println("\t[WARNING]");
     } else {
