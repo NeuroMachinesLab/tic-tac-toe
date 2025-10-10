@@ -2,7 +2,7 @@
   <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="UNNAMED_CLASS_CONFIGURATION" value="true" />
     <option name="MAIN_CLASS_NAME" value="Main" />
-    <module name="tic-tac-toe" />
+    <module name="tic-tac-toe-network" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
