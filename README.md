@@ -36,5 +36,5 @@ Delete the file, if you want to start neural network training from the scratch.
 
 The example of network configuration, which is hard to win, and it's weights shown on following image.
 
-<img src="https://github.com/user-attachments/assets/ebe571c5-8fce-4299-a588-bc292026d225" width="500"/>
+<img src="https://github.com/user-attachments/assets/beab7ffe-1cf3-4957-9f2b-1426c2087495" width="500"/>
 

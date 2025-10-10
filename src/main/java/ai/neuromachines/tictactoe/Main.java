@@ -24,7 +24,7 @@ void main() throws IOException {
             createNetwork(9, 1);
 
     // Train
-    trainNetwork(network, qTable, 100);
+    trainNetwork(network, qTable, 1000);
 
     saveToFile(network, path);
 }
@@ -93,7 +93,7 @@ void trainNetwork(float[] input, float[] expectedOutput, TrainStrategy trainStra
 void printResult(BoardState state, int expect, float answer) {
     float error = expect - answer;
     System.out.printf("%s : expected = %d,\tnetwork answer = %+.2f,\terror = %+.0e", state, expect, answer, error);
-    if (error > 0.01f) {
+    if (Math.abs(error) > 0.01f) {
         println("\t[WARNING]");
     } else {
         println();
