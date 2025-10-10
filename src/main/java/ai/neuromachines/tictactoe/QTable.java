@@ -13,7 +13,8 @@ import java.util.Objects;
 
 @Getter
 public class QTable {
-    private final Map<BoardState, Integer> moves = new LinkedHashMap<>();
+    private static final float MIN_REWARD = -10;
+    private final Map<BoardState, float[]> rewards = new LinkedHashMap<>();
 
     @SneakyThrows
     public void readFile(String fileName) {
@@ -30,29 +31,30 @@ public class QTable {
     private void parseLine(String line) {
         String[] values = line.split(",");
         BoardState state = new BoardState(values[0]);
-        Integer move = getCellToMove(values);
-        moves.put(state, move);
+        float[] r = getRewards(values);
+        this.rewards.put(state, r);
     }
 
-    /**
-     * @return zero-based board cell index to move
-     */
-    private static int getCellToMove(String[] values) {
-        double max = Double.NEGATIVE_INFINITY;
-        int maxIdx = -1;
+    private static float[] getRewards(String[] values) {
+        float[] rewards = new float[9];
         for (int i = 1; i < values.length; i++) {
             String s = values[i].trim();
-            if (!Objects.equals(s, "-")) {
-                double v = Double.parseDouble(s);
-                if (v > max) {
-                    max = v;
-                    maxIdx = i;
-                }
+            rewards[i - 1] = Objects.equals(s, "-") ?
+                    MIN_REWARD :
+                    Float.parseFloat(s);
+        }
+        return rewards;
+    }
+
+    public static int argMax(float[] array) {
+        int maxI = 0;
+        float max = array[0];
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > max) {
+                max = array[i];
+                maxI = i;
             }
         }
-        if (maxIdx == -1) {
-            throw new IllegalArgumentException("Incorrect Q_learning Table row values");
-        }
-        return maxIdx - 1;
+        return maxI;
     }
 }
