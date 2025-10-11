@@ -54,7 +54,7 @@ public class QTable {
         return argMax(r);
     }
 
-    private static int argMax(float[] array) {
+    public static int argMax(float[] array) {
         int maxI = 0;
         float max = array[0];
         for (int i = 1; i < array.length; i++) {

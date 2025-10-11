@@ -1,20 +1,13 @@
 import ai.neuromachines.file.NetworkSerializer;
 import ai.neuromachines.network.Network;
 import ai.neuromachines.network.function.ActivationFunc;
+import ai.neuromachines.network.train.Constants;
 import ai.neuromachines.network.train.TrainStrategy;
 import ai.neuromachines.tictactoe.BoardState;
 import ai.neuromachines.tictactoe.QTable;
 
 import static java.lang.IO.println;
 import static java.nio.file.StandardOpenOption.*;
-
-/**
- * Network output contains only one value and belongs to 0..1 interval.
- * Network trained better for 0..1 output interval.<p>
- * Multiply output to 10 to convert it to Tic Tac Board Cell Index.
- * This index belongs to 0..8 interval (0 for upper left, 8 for lower right cell).
- */
-float Multiplicator = 10;
 
 void main() throws IOException {
     // Trained network file (it may be missing)
@@ -28,13 +21,9 @@ void main() throws IOException {
     // Build Network
     Network network = Files.exists(path) ?
             openNetworkFromFile(path) :
-            createNetwork(9, 1);
+            createNetwork(9, 9, 9);
 
-    // Train
     trainNetwork(network, qTable, 1000);
-
-    // Check network
-    testNetwork(network, qTable);
 
     saveToFile(network, path);
 }
@@ -42,9 +31,11 @@ void main() throws IOException {
 Network createNetwork(int... layersNodeCount) {
     println("Create network with random weights and " +
             layersNodeCount[0] + " nodes in input layer, " +
-            layersNodeCount[1] + " nodes in output layer");
-    ActivationFunc actFunc = ActivationFunc.tanh();
-    return Network.of(List.of(actFunc, actFunc), layersNodeCount);
+            layersNodeCount[1] + " nodes in hidden layer, " +
+            layersNodeCount[2] + " nodes in output layer");
+    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.1f);
+    ActivationFunc actFuncOutput = ActivationFunc.softmax();
+    return Network.of(List.of(actFuncHidden, actFuncOutput), layersNodeCount);
 }
 
 @SuppressWarnings("SameParameterValue")
@@ -67,28 +58,30 @@ void saveToFile(Network network, Path path) throws IOException {
 private void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
+    Constants.learningRate(0.01f);
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
-    for (BoardState state : qtable.getStates()) {
-        int move = qtable.getMaxRewardAction(state);
-        float[] input = state.getNetworkInput();
-        float[] expectedOutput = new float[1];
-        expectedOutput[0] = move / Multiplicator;
-
-        trainNetwork(input, expectedOutput, trainStrategy, iterations);
+    for (int i = 0; i < iterations; i++) {
+        trainNetwork(qtable, trainStrategy);
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
+    testNetwork(network, qtable);
     println("Trained for " + qtable.getStates().size() + " states");
     println("Train time: " + timeSpent);
 }
 
-@SuppressWarnings("SameParameterValue")
-void trainNetwork(float[] input, float[] expectedOutput, TrainStrategy trainStrategy, int iterations) {
-    for (int i = 0; i < iterations; i++) {
+private static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
+    for (BoardState state : qtable.getStates()) {
+        int move = qtable.getMaxRewardAction(state);
+        float[] input = state.getNetworkInput();
+        float[] expectedOutput = new float[9];
+        expectedOutput[move] = 1;
+
         trainStrategy.train(input, expectedOutput);
     }
 }
 
 void testNetwork(Network network, QTable qtable) {
+    int warns = 0;
     for (BoardState state : qtable.getStates()) {
         int move = qtable.getMaxRewardAction(state);
         float[] input = state.getNetworkInput();
@@ -96,18 +89,22 @@ void testNetwork(Network network, QTable qtable) {
         network.input(input);
         network.propagate();
 
-        float networkOutput = network.output()[0];
-        float predictedMove = networkOutput * Multiplicator;
-        printResult(state, move, predictedMove);
+        float[] output = network.output();
+        int predictedMove = QTable.argMax(output);
+        boolean hasWarn = printResult(state, move, predictedMove);
+        if (hasWarn) warns++;
     }
+    println("Warnings: " + warns);
 }
 
-void printResult(BoardState state, int expected, float answer) {
-    float error = expected - answer;
-    System.out.printf("%s : expected = %d,\t\tnetwork answer = %+.2f,\t\terror = %+.0e", state, expected, answer, error);
-    if (Math.abs(error) > 0.01f) {
+boolean printResult(BoardState state, int expected, int answer) {
+    int error = expected - answer;
+    System.out.printf("%s : expected = %d,\t\tnetwork answer = %d", state, expected, answer);
+    boolean warning = Math.abs(error) > 0.01f;
+    if (warning) {
         println("\t[WARNING]");
     } else {
         println();
     }
+    return warning;
 }
