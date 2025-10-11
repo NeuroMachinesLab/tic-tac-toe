@@ -1,6 +1,5 @@
 package ai.neuromachines.tictactoe;
 
-import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
@@ -10,8 +9,8 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
-@Getter
 public class QTable {
     private static final float MIN_REWARD = -10;
     private final Map<BoardState, float[]> rewards = new LinkedHashMap<>();
@@ -46,7 +45,16 @@ public class QTable {
         return rewards;
     }
 
-    public static int argMax(float[] array) {
+    public Set<BoardState> getStates() {
+        return rewards.keySet();
+    }
+
+    public int getMaxRewardAction(BoardState state) {
+        float[] r = rewards.get(state);
+        return argMax(r);
+    }
+
+    private static int argMax(float[] array) {
         int maxI = 0;
         float max = array[0];
         for (int i = 1; i < array.length; i++) {

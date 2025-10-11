@@ -68,10 +68,8 @@ private void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
-    for (var e : qtable.getRewards().entrySet()) {
-        BoardState state = e.getKey();
-        float[] rewards = e.getValue();
-        int move = QTable.argMax(rewards);
+    for (BoardState state : qtable.getStates()) {
+        int move = qtable.getMaxRewardAction(state);
         float[] input = state.getNetworkInput();
         float[] expectedOutput = new float[1];
         expectedOutput[0] = move / Multiplicator;
@@ -79,7 +77,7 @@ private void trainNetwork(Network network, QTable qtable, int iterations) {
         trainNetwork(input, expectedOutput, trainStrategy, iterations);
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
-    println("Trained for " + qtable.getRewards().size() + " states");
+    println("Trained for " + qtable.getStates().size() + " states");
     println("Train time: " + timeSpent);
 }
 
@@ -91,10 +89,8 @@ void trainNetwork(float[] input, float[] expectedOutput, TrainStrategy trainStra
 }
 
 void testNetwork(Network network, QTable qtable) {
-    for (var e : qtable.getRewards().entrySet()) {
-        BoardState state = e.getKey();
-        float[] rewards = e.getValue();
-        int move = QTable.argMax(rewards);
+    for (BoardState state : qtable.getStates()) {
+        int move = qtable.getMaxRewardAction(state);
         float[] input = state.getNetworkInput();
 
         network.input(input);
