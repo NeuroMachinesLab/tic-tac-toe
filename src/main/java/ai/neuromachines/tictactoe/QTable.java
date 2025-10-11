@@ -6,10 +6,7 @@ import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class QTable {
     private static final float MIN_REWARD = -10;
@@ -45,8 +42,10 @@ public class QTable {
         return rewards;
     }
 
-    public Set<BoardState> getStates() {
-        return rewards.keySet();
+    public Collection<BoardState> getStates() {
+        List<BoardState> states = new ArrayList<>(rewards.keySet());
+        Collections.shuffle(states);
+        return states;
     }
 
     public int getMaxRewardAction(BoardState state) {
