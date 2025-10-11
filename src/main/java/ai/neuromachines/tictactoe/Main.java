@@ -9,6 +9,8 @@ import ai.neuromachines.tictactoe.QTable;
 import static java.lang.IO.println;
 import static java.nio.file.StandardOpenOption.*;
 
+static int TRAIN_ITERATIONS = 3000;
+
 void main() throws IOException {
     // Trained network file (it may be missing)
     Path path = Path.of("network.txt");
@@ -21,9 +23,9 @@ void main() throws IOException {
     // Build Network
     Network network = Files.exists(path) ?
             openNetworkFromFile(path) :
-            createNetwork(9, 9, 9);
+            createNetwork(9, 64, 9);
 
-    trainNetwork(network, qTable, 1000);
+    trainNetwork(network, qTable, TRAIN_ITERATIONS);
 
     saveToFile(network, path);
 }
@@ -33,7 +35,7 @@ Network createNetwork(int... layersNodeCount) {
             layersNodeCount[0] + " nodes in input layer, " +
             layersNodeCount[1] + " nodes in hidden layer, " +
             layersNodeCount[2] + " nodes in output layer");
-    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.1f);
+    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.0002f * TRAIN_ITERATIONS); // found empirically
     ActivationFunc actFuncOutput = ActivationFunc.softmax();
     return Network.of(List.of(actFuncHidden, actFuncOutput), layersNodeCount);
 }
@@ -58,14 +60,20 @@ void saveToFile(Network network, Path path) throws IOException {
 private void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
-    Constants.learningRate(0.01f);
+    Constants.learningRate(20f / iterations);  // found empirically
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
-    for (int i = 0; i < iterations; i++) {
+    int percentDecate = iterations / 10;
+    for (int i = 1; i <= iterations; i++) {
         trainNetwork(qtable, trainStrategy);
+        if (i % percentDecate == 0) {
+            println(10 * i / percentDecate + "% done");
+        }
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
-    testNetwork(network, qtable);
+    int incorrectCnt = testNetwork(network, qtable);
     println("Trained for " + qtable.getStates().size() + " states");
+    println("Warnings: " + incorrectCnt);
+    System.out.printf("Accuracy: %.1f%%\n", 100 - (100.0 * incorrectCnt / qtable.getStates().size()));
     println("Train time: " + timeSpent);
 }
 
@@ -80,8 +88,8 @@ private static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
     }
 }
 
-void testNetwork(Network network, QTable qtable) {
-    int warns = 0;
+int testNetwork(Network network, QTable qtable) {
+    int incorrectCnt = 0;
     for (BoardState state : qtable.getStates()) {
         int move = qtable.getMaxRewardAction(state);
         float[] input = state.getNetworkInput();
@@ -92,9 +100,9 @@ void testNetwork(Network network, QTable qtable) {
         float[] output = network.output();
         int predictedMove = QTable.argMax(output);
         boolean hasWarn = printResult(state, move, predictedMove);
-        if (hasWarn) warns++;
+        if (hasWarn) incorrectCnt++;
     }
-    println("Warnings: " + warns);
+    return incorrectCnt;
 }
 
 boolean printResult(BoardState state, int expected, int answer) {
