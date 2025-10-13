@@ -34,7 +34,4 @@ Result network is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
 Delete the file, if you want to start neural network training from the scratch.
 
-The example of network configuration, which is hard to win, and it's weights shown on following image.
-
-<img src="https://github.com/user-attachments/assets/beab7ffe-1cf3-4957-9f2b-1426c2087495" width="500"/>
-
+[network.txt](network.txt) plays game with 93,8% accuracy. But it's quite difficult to win it, try it.
