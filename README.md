@@ -34,4 +34,4 @@ Result network is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
 Delete the file, if you want to start neural network training from the scratch.
 
-[network.txt](network.txt) plays game with 93,8% accuracy. But it's quite difficult to win it, try it.
+[network.txt](network.txt) plays game with 96% accuracy. But it's quite difficult to win it, try it.

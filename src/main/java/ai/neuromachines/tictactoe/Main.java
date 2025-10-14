@@ -34,7 +34,7 @@ Network createNetwork(int... layersNodeCount) {
             layersNodeCount[0] + " nodes in input layer, " +
             layersNodeCount[1] + " nodes in hidden layer, " +
             layersNodeCount[2] + " nodes in output layer");
-    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.0002f * TRAIN_ITERATIONS); // found empirically
+    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.0002f * TRAIN_ITERATIONS);  // found empirically
     ActivationFunc actFuncOutput = ActivationFunc.softmax();
     return Network.of(List.of(actFuncHidden, actFuncOutput), layersNodeCount);
 }
@@ -56,7 +56,7 @@ void saveToFile(Network network, Path path) throws IOException {
 }
 
 @SuppressWarnings("SameParameterValue")
-private void trainNetwork(Network network, QTable qtable, int iterations) {
+void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
@@ -69,28 +69,36 @@ private void trainNetwork(Network network, QTable qtable, int iterations) {
         }
     }
     Duration timeSpent = Duration.between(t0, Instant.now());
-    int incorrectCnt = testNetwork(network, qtable);
+    int incorrectMoveCnt = testNetwork(network, qtable);
     println("Trained for " + qtable.getStates().size() + " states");
-    println("Warnings: " + incorrectCnt);
-    System.out.printf("Accuracy: %.1f%%\n", 100 - (100.0 * incorrectCnt / qtable.getStates().size()));
+    println("Warnings: " + incorrectMoveCnt);
+    System.out.printf("Accuracy: %.1f%%\n", 100 - (100.0 * incorrectMoveCnt / qtable.getStates().size()));
     println("Train time: " + timeSpent);
 }
 
-private static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
+static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
     for (BoardState state : qtable.getStates()) {
-        int move = qtable.getMaxRewardAction(state);
         float[] input = state.getNetworkInput();
-        float[] expectedOutput = new float[9];
-        expectedOutput[move] = 1;
+        float[] expectedOutput = getExpectedSoftmaxOutput(state, qtable);
 
         trainStrategy.train(input, expectedOutput);
     }
 }
 
+static float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
+    List<Integer> prefferedActions = qTable.getMaxRewardActions(state);
+    float value = 1.0f / prefferedActions.size();
+    float[] output = new float[9];
+    for (int i : prefferedActions) {
+        output[i] = value;
+    }
+    return output;
+}
+
 int testNetwork(Network network, QTable qtable) {
     int incorrectCnt = 0;
     for (BoardState state : qtable.getStates()) {
-        int move = qtable.getMaxRewardAction(state);
+        List<Integer> preferredMoves = qtable.getMaxRewardActions(state);
         float[] input = state.getNetworkInput();
 
         network.input(input);
@@ -98,20 +106,21 @@ int testNetwork(Network network, QTable qtable) {
 
         float[] output = network.output();
         int predictedMove = QTable.argMax(output);
-        boolean hasWarn = printResult(state, move, predictedMove);
-        if (hasWarn) incorrectCnt++;
+        boolean isCorrectMove = printResult(state, preferredMoves, predictedMove);
+        if (!isCorrectMove) {
+            incorrectCnt++;
+        }
     }
     return incorrectCnt;
 }
 
-boolean printResult(BoardState state, int expected, int answer) {
-    int error = expected - answer;
-    System.out.printf("%s : expected = %d,\t\tnetwork answer = %d", state, expected, answer);
-    boolean warning = Math.abs(error) > 0.01f;
-    if (warning) {
-        println("\t[WARNING]");
-    } else {
+boolean printResult(BoardState state, List<Integer> possibleMoves, int answer) {
+    System.out.printf("%s : expected one of = %-27s, network answer = %d", state, possibleMoves, answer);
+    boolean isCorrectMove = possibleMoves.contains(answer);
+    if (isCorrectMove) {
         println();
+    } else {
+        println("\t[WARNING]");
     }
-    return warning;
+    return isCorrectMove;
 }
