@@ -8,8 +8,6 @@ import ai.neuromachines.tictactoe.QTable;
 import static java.lang.IO.println;
 import static java.nio.file.StandardOpenOption.*;
 
-static int TRAIN_ITERATIONS = 3000;
-
 void main() throws IOException {
     // Trained network file (it may be missing)
     Path path = Path.of("network.txt");
@@ -24,7 +22,7 @@ void main() throws IOException {
             openNetworkFromFile(path) :
             createNetwork(9, 64, 9);
 
-    trainNetwork(network, qTable, TRAIN_ITERATIONS);
+    trainNetwork(network, qTable, 1000);
 
     saveToFile(network, path);
 }
@@ -34,7 +32,7 @@ Network createNetwork(int... layersNodeCount) {
             layersNodeCount[0] + " nodes in input layer, " +
             layersNodeCount[1] + " nodes in hidden layer, " +
             layersNodeCount[2] + " nodes in output layer");
-    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.0002f * TRAIN_ITERATIONS);  // found empirically
+    ActivationFunc actFuncHidden = ActivationFunc.sigmoid(0.6f);  // found empirically
     ActivationFunc actFuncOutput = ActivationFunc.softmax();
     return Network.of(List.of(actFuncHidden, actFuncOutput), layersNodeCount);
 }
@@ -60,7 +58,7 @@ void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
-    trainStrategy.setLearningRate(20f / iterations);  // found empirically
+    trainStrategy.setLearningRate(0.02f);  // found empirically
     int percentDecate = iterations / 10;
     for (int i = 1; i <= iterations; i++) {
         trainNetwork(qtable, trainStrategy);
