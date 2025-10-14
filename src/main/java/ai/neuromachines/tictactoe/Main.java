@@ -64,7 +64,7 @@ void trainNetwork(Network network, QTable qtable, int iterations) {
     int percentDecate = iterations / 10;
     for (int i = 1; i <= iterations; i++) {
         trainNetwork(qtable, trainStrategy);
-        if (i % percentDecate == 0) {
+        if (iterations >= 100 && (i % percentDecate) == 0) {
             println(10 * i / percentDecate + "% done");
         }
     }
