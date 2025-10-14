@@ -1,7 +1,6 @@
 import ai.neuromachines.file.NetworkSerializer;
 import ai.neuromachines.network.Network;
 import ai.neuromachines.network.function.ActivationFunc;
-import ai.neuromachines.network.train.Constants;
 import ai.neuromachines.network.train.TrainStrategy;
 import ai.neuromachines.tictactoe.BoardState;
 import ai.neuromachines.tictactoe.QTable;
@@ -60,8 +59,8 @@ void saveToFile(Network network, Path path) throws IOException {
 private void trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
-    Constants.learningRate(20f / iterations);  // found empirically
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
+    trainStrategy.setLearningRate(20f / iterations);  // found empirically
     int percentDecate = iterations / 10;
     for (int i = 1; i <= iterations; i++) {
         trainNetwork(qtable, trainStrategy);
