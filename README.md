@@ -18,7 +18,7 @@ generate vector of 9 numbers. For example, Q-Learning Table encodes board state 
 
 <img src="https://github.com/user-attachments/assets/78345cbb-b406-4404-a358-195a3c49afcf" width="128px"/>
 
-Next, the program finds the best move. The best move is the move with the highest numerical value.
+Next, the program finds the best move(-s). The best move is the move with the highest numerical value.
 For example, if Q-Learning Table contains this row
 
 | State       | A1 | A2   | A3   | A4   | A5   | A6 | A7 | A8 | A9   |
@@ -29,8 +29,8 @@ the best move is move to 4-th space.
 
 Next, [neural network](https://github.com/NeuroMachinesLab/perceptron) is generated with 9 input nodes and 1 output
 node.
-Network is trained with board state on input nodes and with its best move on the output node.
-Network is trained with Backpropagation algorithm and Least Squares loss function for all board states.
+Network is trained with board state on input nodes and with its best move(-s) on the output node.
+Network is trained with Backpropagation algorithm and Cross-Entropy loss function for all board states.
 
 Result network is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
