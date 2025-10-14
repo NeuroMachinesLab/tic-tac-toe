@@ -3,6 +3,7 @@
 # Neural Network for Tic Tac Toe Game
 
 To create and train network run:
+
 ```shell
 .\mvnw.cmd clean package
 java -jar .\target\tic-tac-toe-network-1.0.jar
@@ -20,13 +21,14 @@ generate vector of 9 numbers. For example, Q-Learning Table encodes board state 
 Next, the program finds the best move. The best move is the move with the highest numerical value.
 For example, if Q-Learning Table contains this row
 
-| State       | A1  | A2   | A3    | A4   | A5   | A6 | A7   | A8 | A9    |
-|-------------|-----|------|-------|------|------|----|------|----|-------|
-| o-- --x ox- | -   | -9.1 | -9.1  | -7.4 | -9.1 | -  | -    | -  | -9.1  |
+| State       | A1 | A2   | A3   | A4   | A5   | A6 | A7 | A8 | A9   |
+|-------------|----|------|------|------|------|----|----|----|------|
+| o-- --x ox- | -  | -9.1 | -9.1 | -7.4 | -9.1 | -  | -  | -  | -9.1 |
 
 the best move is move to 4-th space.
 
-Next, [neural network](https://github.com/NeuroMachinesLab/perceptron) is generated with 9 input nodes and 1 output node.
+Next, [neural network](https://github.com/NeuroMachinesLab/perceptron) is generated with 9 input nodes and 1 output
+node.
 Network is trained with board state on input nodes and with its best move on the output node.
 Network is trained with Backpropagation algorithm and Least Squares loss function for all board states.
 
@@ -34,4 +36,16 @@ Result network is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
 Delete the file, if you want to start neural network training from the scratch.
 
-[network.txt](network.txt) plays games with 98.1% accuracy. It's quite difficult to win, try it.
+[network.txt](network.txt) contains 9+64+9 nodes in 3 layers (1225 parameters) and plays games with 98.1% accuracy.
+It's quite difficult to win, try it.
+
+Other network examples
+
+| Network                          | Configuration | Parameters | Accuracy, % |
+|----------------------------------|---------------|------------|-------------|
+| [network-3.txt](network-3.txt)   | 9+3+9         | 66         | 51.1        |
+| [network-9.txt](network-9.txt)   | 9+9+9         | 180        | 75.3        |
+| [network-18.txt](network-18.txt) | 9+18+9        | 351        | 84.6        |
+| [network-64.txt](network.txt)    | 9+64+9        | 1225       | 98.1        |
+| [network-81.txt](network-81.txt) | 9+81+9        | 1548       | 98.8        |
+| [network-90.txt](network-90.txt) | 9+90+9        | 1719       | 99.2        |
