@@ -84,10 +84,10 @@ static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
 }
 
 static float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
-    List<Integer> prefferedActions = qTable.getMaxRewardActions(state);
-    float value = 1.0f / prefferedActions.size();
+    Set<Integer> preferredActions = qTable.getMaxRewardActions(state);
+    float value = 1.0f / preferredActions.size();
     float[] output = new float[9];
-    for (int i : prefferedActions) {
+    for (int i : preferredActions) {
         output[i] = value;
     }
     return output;
@@ -96,15 +96,15 @@ static float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
 int testNetwork(Network network, QTable qtable) {
     int incorrectCnt = 0;
     for (BoardState state : qtable.getStates()) {
-        List<Integer> preferredMoves = qtable.getMaxRewardActions(state);
+        Collection<Integer> preferredMoves = qtable.getMaxRewardActions(state);
         float[] input = state.getNetworkInput();
 
         network.input(input);
         network.propagate();
 
         float[] output = network.output();
-        int predictedMove = QTable.argMax(output);
-        boolean isCorrectMove = printResult(state, preferredMoves, predictedMove);
+        Collection<Integer> predictedMoves = QTable.getMaxRewardActions(output);
+        boolean isCorrectMove = printResult(state, preferredMoves, predictedMoves);
         if (!isCorrectMove) {
             incorrectCnt++;
         }
@@ -112,9 +112,10 @@ int testNetwork(Network network, QTable qtable) {
     return incorrectCnt;
 }
 
-boolean printResult(BoardState state, List<Integer> possibleMoves, int answer) {
-    System.out.printf("%s : expected one of = %-27s, network answer = %d", state, possibleMoves, answer);
-    boolean isCorrectMove = possibleMoves.contains(answer);
+boolean printResult(BoardState state, Collection<Integer> possibleMoves,  Collection<Integer> predictedMoves) {
+    System.out.printf("%s : best move(-s) (any of) = %-27s, network answer  (any of) = %s",
+            state, possibleMoves, predictedMoves);
+    boolean isCorrectMove = possibleMoves.containsAll(predictedMoves);
     if (isCorrectMove) {
         println();
     } else {

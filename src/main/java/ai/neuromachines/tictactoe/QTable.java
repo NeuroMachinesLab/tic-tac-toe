@@ -48,19 +48,27 @@ public class QTable {
         return states;
     }
 
-    public List<Integer> getMaxRewardActions(BoardState state) {
+    public Set<Integer> getMaxRewardActions(BoardState state) {
         float[] r = rewards.get(state);
-        float max = max(r);
-        List<Integer> maxArgs = new ArrayList<>();
-        for (int i = 0; i < r.length; i++) {
-            if (r[i] == max) {
+        return getMaxRewardActions(r);
+    }
+
+    public static Set<Integer> getMaxRewardActions(float[] rewards) {
+        float max = max(rewards);
+        return findValuesEqualsTo(rewards, max);
+    }
+
+    private static Set<Integer> findValuesEqualsTo(float[] a, float v) {
+        Set<Integer> maxArgs = new HashSet<>(9);
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] == v) {
                 maxArgs.add(i);
             }
         }
         return maxArgs;
     }
 
-    public static float max(float[] array) {
+    private static float max(float[] array) {
         float max = array[0];
         for (int i = 1; i < array.length; i++) {
             if (array[i] > max) {
@@ -68,17 +76,5 @@ public class QTable {
             }
         }
         return max;
-    }
-
-    public static int argMax(float[] array) {
-        int maxI = 0;
-        float max = array[0];
-        for (int i = 1; i < array.length; i++) {
-            if (array[i] > max) {
-                max = array[i];
-                maxI = i;
-            }
-        }
-        return maxI;
     }
 }
