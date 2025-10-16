@@ -27,10 +27,12 @@ For example, if Q-Learning Table contains this row
 
 the best move is move to 4-th space.
 
-Next, [neural network](https://github.com/NeuroMachinesLab/perceptron) is generated with 9 input nodes and 1 output
-node.
-Network is trained with board state on input nodes and with its best move(-s) on the output node.
+Next, [neural network](https://github.com/NeuroMachinesLab/perceptron) is generated with 9 input nodes and 9 output
+nodes. Network is trained with board state on input nodes and with its best move(-s) on the output nodes.
+The output nodes contain the percentage values for moving to each of the 9 spaces. In total 100%.
 Network is trained with Backpropagation algorithm and Cross-Entropy loss function for all board states.
+As a result of training accuracy is printed.
+Accuracy is determined by the number of board states in which the neural network makes the best move.
 
 Result network is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
@@ -39,13 +41,44 @@ Delete the file, if you want to start neural network training from the scratch.
 [network.txt](network.txt) contains 9+64+9 nodes in 3 layers (1225 parameters) and plays games with 98.1% accuracy.
 It's quite difficult to win, try it.
 
-Other network examples
+Other network configurations
 
 | Network                          | Configuration | Parameters | Accuracy, % |
 |----------------------------------|---------------|------------|-------------|
 | [network-3.txt](network-3.txt)   | 9+3+9         | 66         | 51.1        |
 | [network-9.txt](network-9.txt)   | 9+9+9         | 180        | 75.3        |
 | [network-18.txt](network-18.txt) | 9+18+9        | 351        | 84.6        |
-| [network-64.txt](network.txt)    | 9+64+9        | 1225       | 98.1        |
+| [network.txt](network.txt)       | 9+64+9        | 1225       | 98.1        |
 | [network-81.txt](network-81.txt) | 9+81+9        | 1548       | 98.8        |
 | [network-90.txt](network-90.txt) | 9+90+9        | 1719       | 99.2        |
+
+### Console interface
+
+Example of console output for one of the train:
+```shell
+Create network with random weights and 9 nodes in input layer, 64 nodes in hidden layer, 9 nodes in output layer
+Train iterations: 1000
+10% done
+20% done
+30% done
+40% done
+50% done
+60% done
+70% done
+80% done
+90% done
+100% done
+
+xox o-- -x- : best move(-s) (any of) = [4, 8]        , network answer (any of) = [4]
+xxo o-x -xo : best move(-s) (any of) = [4]           , network answer (any of) = [4]
+o-o x-x -xo : best move(-s) (any of) = [4]           , network answer (any of) = [4]
+--x o-- oxx : best move(-s) (any of) = [0]           , network answer (any of) = [5]	[WARNING]
+--o xx- -ox : best move(-s) (any of) = [0, 1, 5, 6]  , network answer (any of) = [0]
+....
+
+Trained for 4520 states
+Warnings: 87
+Accuracy: 98,1%
+Train time: 0.5 S
+Network has been written to: network.txt
+```
