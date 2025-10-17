@@ -45,6 +45,7 @@ Other network configurations
 
 | Network                          | Configuration | Parameters | Accuracy, % |
 |----------------------------------|---------------|------------|-------------|
+| [network-2.txt](network-2.txt)   | 9+2+9         | 47         | 46.3        |
 | [network-3.txt](network-3.txt)   | 9+3+9         | 66         | 54.6        |
 | [network-9.txt](network-9.txt)   | 9+9+9         | 180        | 75.9        |
 | [network-18.txt](network-18.txt) | 9+18+9        | 351        | 84.8        |
