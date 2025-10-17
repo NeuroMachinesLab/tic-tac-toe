@@ -5,6 +5,7 @@ import ai.neuromachines.network.train.TrainStrategy;
 import ai.neuromachines.tictactoe.BoardState;
 import ai.neuromachines.tictactoe.QTable;
 
+import static java.lang.IO.print;
 import static java.lang.IO.println;
 import static java.nio.file.StandardOpenOption.*;
 
@@ -22,9 +23,9 @@ void main() throws IOException {
             openNetworkFromFile(path) :
             createNetwork(9, 64, 9);
 
-    trainNetwork(network, qTable, 1000);
+    Network bestNetwork = trainNetwork(network, qTable, 1000);
 
-    saveToFile(network, path);
+    saveToFile(bestNetwork, path);
 }
 
 Network createNetwork(int... layersNodeCount) {
@@ -50,31 +51,46 @@ void saveToFile(Network network, Path path) throws IOException {
     try (FileChannel ch = FileChannel.open(path, CREATE, WRITE, TRUNCATE_EXISTING)) {
         NetworkSerializer.serialize(network, ch);
     }
-    println("Network has been written to: " + path);
+    println("The most accurate network from the iterations has been written to: " + path);
 }
 
+/**
+ * @return the most accurate network from the iterations
+ */
 @SuppressWarnings("SameParameterValue")
-void trainNetwork(Network network, QTable qtable, int iterations) {
+Network trainNetwork(Network network, QTable qtable, int iterations) {
     println("Train iterations: " + iterations);
     Instant t0 = Instant.now();
+
     TrainStrategy trainStrategy = TrainStrategy.backpropagation(network);
     trainStrategy.setLearningRate(0.02f);  // found empirically
-    int percentDecate = iterations / 10;
+
+    Network bestNetwork = Network.of(network);
+    int fewestMistakes = quietTestNetwork(bestNetwork, qtable);
+
     for (int i = 1; i <= iterations; i++) {
         trainNetwork(qtable, trainStrategy);
-        if (iterations >= 100 && (i % percentDecate) == 0) {
-            println(10 * i / percentDecate + "% done");
+        int mistakes = quietTestNetwork(network, qtable);
+        if (mistakes < fewestMistakes) {
+            fewestMistakes = mistakes;
+            bestNetwork = Network.of(network);
+        }
+
+        if (iterations >= 100 && (i % (iterations / 10)) == 0) {
+            println(100 * i / iterations + "% done");
         }
     }
-    Duration timeSpent = Duration.between(t0, Instant.now());
-    int incorrectMoveCnt = testNetwork(network, qtable);
+    int mistakes = testNetworkAndPrintResult(bestNetwork, qtable);
     println("Trained for " + qtable.getStates().size() + " states");
-    println("Warnings: " + incorrectMoveCnt);
-    System.out.printf("Accuracy: %.1f%%\n", 100 - (100.0 * incorrectMoveCnt / qtable.getStates().size()));
+    println("Mistakes: " + mistakes);
+    System.out.printf("Accuracy: %.1f%%\n", 100 - (100.0 * mistakes / qtable.getStates().size()));
+
+    Duration timeSpent = Duration.between(t0, Instant.now());
     println("Train time: " + timeSpent);
+    return bestNetwork;
 }
 
-static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
+void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
     for (BoardState state : qtable.getStates()) {
         float[] input = state.getNetworkInput();
         float[] expectedOutput = getExpectedSoftmaxOutput(state, qtable);
@@ -83,7 +99,7 @@ static void trainNetwork(QTable qtable, TrainStrategy trainStrategy) {
     }
 }
 
-static float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
+float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
     Set<Integer> preferredActions = qTable.getMaxRewardActions(state);
     float value = 1.0f / preferredActions.size();
     float[] output = new float[9];
@@ -93,8 +109,16 @@ static float[] getExpectedSoftmaxOutput(BoardState state, QTable qTable) {
     return output;
 }
 
-int testNetwork(Network network, QTable qtable) {
-    int incorrectCnt = 0;
+int quietTestNetwork(Network network, QTable qtable) {
+    return testNetwork(network, qtable, true);
+}
+
+int testNetworkAndPrintResult(Network network, QTable qtable) {
+    return testNetwork(network, qtable, false);
+}
+
+int testNetwork(Network network, QTable qtable, boolean quiet) {
+    int mistakes = 0;
     for (BoardState state : qtable.getStates()) {
         Collection<Integer> preferredMoves = qtable.getMaxRewardActions(state);
         float[] input = state.getNetworkInput();
@@ -104,22 +128,23 @@ int testNetwork(Network network, QTable qtable) {
 
         float[] output = network.output();
         Collection<Integer> predictedMoves = QTable.getMaxRewardActions(output);
-        boolean isCorrectMove = printResult(state, preferredMoves, predictedMoves);
-        if (!isCorrectMove) {
-            incorrectCnt++;
+
+        boolean hasMistakes = !preferredMoves.containsAll(predictedMoves);
+        if (hasMistakes) {
+            mistakes++;
+        }
+        if (!quiet) {
+            printResult(state, preferredMoves, predictedMoves, hasMistakes);
         }
     }
-    return incorrectCnt;
+    return mistakes;
 }
 
-boolean printResult(BoardState state, Collection<Integer> possibleMoves,  Collection<Integer> predictedMoves) {
+void printResult(BoardState state, Collection<Integer> preferredMoves, Collection<Integer> predictedMoves, boolean hasMistakes) {
     System.out.printf("%s : best move(-s) (any of) = %-27s, network answer  (any of) = %s",
-            state, possibleMoves, predictedMoves);
-    boolean isCorrectMove = possibleMoves.containsAll(predictedMoves);
-    if (isCorrectMove) {
-        println();
-    } else {
-        println("\t[WARNING]");
+            state, preferredMoves, predictedMoves);
+    if (hasMistakes) {
+        print("\t[MISTAKE]");
     }
-    return isCorrectMove;
+    println();
 }

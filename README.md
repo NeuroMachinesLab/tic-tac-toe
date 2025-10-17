@@ -16,7 +16,7 @@ This program converts each board space to the number (-1 for empty space, 0 for 
 generate vector of 9 numbers. For example, Q-Learning Table encodes board state for the following picture with
 `'oxx -ox --o'`. Program converts this state to the vector `[0, 1, 1, -1, 0, 1, -1, -1, 0]`.
 
-<img src="https://github.com/user-attachments/assets/78345cbb-b406-4404-a358-195a3c49afcf" width="128px"/>
+<img src="https://github.com/user-attachments/assets/78345cbb-b406-4404-a358-195a3c49afcf" width="128px" alt="tic-tac-toe-game"/>
 
 Next, the program finds the best move(-s). The best move is the move with the highest numerical value.
 For example, if Q-Learning Table contains this row
@@ -34,7 +34,7 @@ Network is trained with Backpropagation algorithm and Cross-Entropy loss functio
 As a result of training accuracy is printed.
 Accuracy is determined by the number of board states in which the neural network makes the best move.
 
-Result network is written to the [network.txt](network.txt) file.
+The most accurate network from the iterations is written to the [network.txt](network.txt) file.
 Run the program again without deleting the file, if you want to continue training the network further.
 Delete the file, if you want to start neural network training from the scratch.
 
@@ -45,16 +45,17 @@ Other network configurations
 
 | Network                          | Configuration | Parameters | Accuracy, % |
 |----------------------------------|---------------|------------|-------------|
-| [network-3.txt](network-3.txt)   | 9+3+9         | 66         | 51.1        |
-| [network-9.txt](network-9.txt)   | 9+9+9         | 180        | 75.3        |
-| [network-18.txt](network-18.txt) | 9+18+9        | 351        | 84.6        |
-| [network.txt](network.txt)       | 9+64+9        | 1225       | 98.1        |
+| [network-3.txt](network-3.txt)   | 9+3+9         | 66         | 54.6        |
+| [network-9.txt](network-9.txt)   | 9+9+9         | 180        | 75.9        |
+| [network-18.txt](network-18.txt) | 9+18+9        | 351        | 84.8        |
+| [network.txt](network.txt)       | 9+64+9        | 1225       | 98.4        |
 | [network-81.txt](network-81.txt) | 9+81+9        | 1548       | 98.8        |
 | [network-90.txt](network-90.txt) | 9+90+9        | 1719       | 99.2        |
 
 ### Console interface
 
 Example of console output for one of the train:
+
 ```shell
 Create network with random weights and 9 nodes in input layer, 64 nodes in hidden layer, 9 nodes in output layer
 Train iterations: 1000
@@ -71,14 +72,14 @@ Train iterations: 1000
 
 xox o-- -x- : best move(-s) (any of) = [4, 8]        , network answer (any of) = [4]
 xxo o-x -xo : best move(-s) (any of) = [4]           , network answer (any of) = [4]
-o-o x-x -xo : best move(-s) (any of) = [4]           , network answer (any of) = [4]
---x o-- oxx : best move(-s) (any of) = [0]           , network answer (any of) = [5]	[WARNING]
+o-o x-x -xo : best move(-s) (any of) = [4]           , network answer (any of) = [1, 4]  [MISTAKE]
+--x o-- oxx : best move(-s) (any of) = [0]           , network answer (any of) = [5]	 [MISTAKE]
 --o xx- -ox : best move(-s) (any of) = [0, 1, 5, 6]  , network answer (any of) = [0]
 ....
 
 Trained for 4520 states
-Warnings: 87
-Accuracy: 98,1%
+Mistakes: 73
+Accuracy: 98,4%
 Train time: 0.5 S
 Network has been written to: network.txt
 ```
